@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarefas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Variáveis de cores e estilos baseadas no expansao.html */
+        :root {
+            --primary: #A020F0; /* Roxo vibrante e profundo */
+            --primary-dark: #8018C0; /* Um roxo escuro, ideal para fundos e detalhes */
+            --primary-light: #CC88FF; /* Um roxo mais claro, mas ainda intenso, para destaques */
+
+            --secondary: #1a1a1a; /* Cor secundária para elementos de fundo escuros */
+            --secondary-light: #2a2a2a; /* Versão mais clara da cor secundária */
+            --background: #000000; /* Fundo principal da página, preto */
+            --background-light: #151515; /* Fundo levemente mais claro para contraste */
+            --card: #1c1c1c; /* Cor de fundo para os cartões (boxes) */
+            --text-primary: #e0e0e0; /* Cor principal para o texto, branco acinzentado */
+            --text-secondary: #a0a0a0; /* Cor secundária para o texto, cinza claro */
+            --success: #48bb78; /* Cor para mensagens de sucesso (verde) */
+            --error: #f56565; /* Cor para mensagens de erro (vermelho) */
+            --warning: #ed8936; /* Cor para mensagens de aviso (laranja) */
+            --border: #333333; /* Cor para bordas sutis */
+            --shadow: rgba(0, 0, 0, 0.4); /* Sombra padrão */
+            --shadow-lg: rgba(0, 0, 0, 0.6); /* Sombra maior */
+            --glow: rgba(160, 32, 240, 0.4); /* Efeito de brilho baseado na nova cor primária */
+            --pulse-glow: rgba(160, 32, 240, 0.6); /* Efeito de brilho pulsante baseado na nova cor primária */
+            /* Variáveis adicionadas para o #scamWarning */
+            --warning-text: #ffffff; /* Texto branco para contraste */
+            --warning-bg: var(--primary); /* Fundo roxo (usando a nova cor primária) */
+            --warning-border: var(--primary-light); /* Borda roxa clara (usando a nova cor primária clara) */
+            --warning-shadow: rgba(160, 32, 240, 0.5); /* Sombra roxa (usando a nova cor primária para consistência) */
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Remove a barra de rolagem */
+        html, body {
+            scrollbar-width: none; /* Para navegadores Firefox */
+        }
+        ::-webkit-scrollbar {
+            display: none; /* Para navegadores baseados em WebKit (Chrome, Safari) */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden; /* Esconde a barra de rolagem horizontal */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            /* Fundo gradiente do expansao.html */
+            background: radial-gradient(ellipse at bottom, #1a0d2e 0%, var(--background) 70%);
+        }
+
+        /* Estilos do Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #1a0d2e 0%, var(--background) 70%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid transparent;
+            border-top: 3px solid var(--primary-light);
+            border-right: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            filter: drop-shadow(0 0 20px var(--glow));
+        }
+
+        .loader::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary-light);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite reverse;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Efeito de neve caindo (partículas) */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            background-color: var(--primary-light); /* Cor única para as partículas */
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 6px var(--primary-light), 0 0 12px var(--primary-light); /* Ajuste do efeito de sombra */
+            animation: fall linear infinite;
+        }
+        
+        /* Keyframes da animação de neve, importado do index.html */
+        @keyframes fall { 
+            0% { 
+                transform: translateY(-10vh) rotate(0deg); 
+                opacity: 0; 
+            } 
+            10% { 
+                opacity: 0.8; 
+            }
+            90% { 
+                opacity: 0.4; 
+            }
+            100% { 
+                transform: translateY(110vh) rotate(360deg); 
+                opacity: 0; 
+            } 
+        }
+
+        /* Estilos para o container principal (onde o modal de login fica) */
+        .container {
+            max-width: 520px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            margin-top: 0 !important;
+        }
+
+        /* Estilos para o modal-overlay (fundo escuro que cobre a tela) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* A linha abaixo foi removida para que o fundo com as partículas de neve ficasse visível */
+            /* background-color: rgba(0, 0, 0, 0.85); */
+            /* backdrop-filter: blur(18px); */ /* Removido para deixar o fundo totalmente visível */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+            z-index: 1000;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Estilos para o conteúdo do modal */
+        .modal-content {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 28px;
+            box-shadow: 0 12px 40px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(15px);
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Efeito de linha brilhante no topo do modal */
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: lineGlow 3s infinite alternate;
+        }
+
+        /* Estilos específicos para os modais de cursos, tempo e processamento */
+        #courseModal .modal-content, #timeInputModal .modal-content, #processingModal .modal-content, #confirmFinishCourseModal .modal-content, #tasksModal .modal-content, #allTasksProcessingModal .modal-content, #configurableTasksModal .modal-content {
+            max-width: 600px;
+            padding: 30px;
+            /* Adicionado para permitir rolagem interna do modal se o conteúdo for muito grande */
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh; /* Limita a altura do modal para 90% da viewport height */
+            overflow-y: auto; /* Adiciona rolagem ao modal se o conteúdo exceder */
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-direction: column;
+            gap: 15px;
+            flex-shrink: 0; /* Impede que o cabeçalho encolha */
+        }
+
+        /* Logo circular com brilho */
+        .logo {
+            width: 120px;
+            height: 120px;
+            background-color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .logo:hover {
+            transform: translateY(-6px) scale(1.06);
+            box-shadow: none;
+        }
+        /* Melhoria da .takis-image para se adequar à logo circular */
+        .takis-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover; /* Alterado de 'contain' para 'cover' */
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            background-image:
+                linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%),
+                linear-gradient(to right, var(--primary-dark) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 100%, 100% 100%;
+            background-position: -200% 0, 0 0;
+            animation: shimmer 2.5s infinite linear;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .header .moon-logo {
+            font-size: 2.2rem;
+            color: var(--primary-light);
+            text-shadow: 0 0 10px var(--glow);
+        }
+
+        h2 {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            /* Adicionado shimmer e gradiente para h2 em modais */
+            background-image:
+                linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%),
+                linear-gradient(to right, var(--primary-dark) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 100%, 100% 100%;
+            background-position: -200% 0, 0 0;
+            animation: shimmer 2.5s infinite linear;
+        }
+        
+        /* Ajuste específico para o título do modal de processamento */
+        #processingModal .header h1, #tasksModal .header h1, #allTasksProcessingModal .header h1, #configurableTasksModal .header h1 {
+            font-size: 1.8rem; /* Tamanho base similar ao h2 */
+            white-space: normal; /* Permite quebrar linha */
+            overflow: visible; /* Garante que o texto seja visível */
+            text-overflow: clip; /* Remove o ellipsis se houver */
+        }
+        /* Responsividade para o título do modal de processamento */
+        @media (max-width: 768px) {
+            #processingModal .header h1, #tasksModal .header h1, #allTasksProcessingModal .header h1, #configurableTasksModal .header h1 {
+                font-size: 1.8rem; /* Mantém o tamanho para tablets */
+            }
+        }
+        @media (max-width: 600px) {
+            #processingModal .header h1, #tasksModal .header h1, #allTasksProcessingModal .header h1, #configurableTasksModal .header h1 {
+                font-size: 1.5em; /* Reduz para telas menores */
+            }
+        }
+        @media (max-width: 480px) {
+            #processingModal .header h1, #tasksModal .header h1, #allTasksProcessingModal .header h1, #configurableTasksModal .header h1 {
+                font-size: 1.3em; /* Reduz ainda mais para celulares */
+            }
+        }
+        @media (max-width: 380px) {
+            #processingModal .header h1, #tasksModal .header h1, #allTasksProcessingModal .header h1, #configurableTasksModal .header h1 {
+                font-size: 1.2rem; /* Tamanho mínimo para telas muito pequenas */
+            }
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+            text-align: left;
+            flex-shrink: 0; /* Impede que o grupo de formulário encolha */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select { /* Adicionado 'select' aqui */
+            width: 100%;
+            padding: 18px 22px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            background-color: var(--background-light);
+            color: var(--text-primary);
+            font-size: 17px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        select:focus { /* Adicionado 'select' aqui */
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px var(--glow), inset 0 2px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        /* Botão de login e ação */
+        .login-button, .action-button {
+            width: 100%;
+            padding: 18px 26px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 6px 25px var(--glow);
+            outline: none;
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0; /* Impede que os botões encolham */
+        }
+
+        .login-button:hover, .action-button:hover {
+            background-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 35px var(--pulse-glow);
+        }
+
+        .login-button.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .login-button.loading .fa-spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        .login-button.loading span {
+            display: none;
+        }
+
+        .login-button:active, .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px var(--glow);
+        }
+
+        /* Estilos para o botão de fechar modal */
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+
+        .close-button:hover {
+            color: var(--primary);
+        }
+
+        /* Estilos para o contêiner de notificações flutuantes */
+        .notifications-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+            pointer-events: none;
+            max-width: 350px;
+        }
+
+        /* Estilos para mensagens de feedback (notificação individual) */
+        .notification {
+            background: var(--card);
+            border-left: 5px solid var(--primary);
+            padding: 18px 22px;
+            border-radius: 14px;
+            box-shadow: 0 10px 35px var(--shadow);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            pointer-events: auto;
+            transition: all 0.4s;
+            cursor: pointer;
+            /* Removido opacity e transform para que a notificação apareça com tamanho final imediatamente */
+            /* animation: slideInRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; */
+            opacity: 1; /* Garante que seja visível imediatamente */
+            transform: translateY(0); /* Garante que esteja na posição final imediatamente */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 0;
+            min-width: 200px; /* Garante tamanho mínimo */
+            max-width: 350px; /* Garante tamanho máximo */
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .notification.fadeOut {
+            animation: fadeOutRight 0.5s ease forwards;
+        }
+        .notification:hover {
+            transform: translateX(-6px);
+            border-color: var(--primary-light);
+        }
+        .notification h3 {
+            font-size: 17px;
+            margin: 0 0 5px 0;
+            color: var(--text-primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .notification p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin: 0;
+        }
+        /* Correção das cores das notificações */
+        .notification.success {
+            border-left-color: var(--success);
+        }
+        .notification.success h3 {
+            color: var(--success);
+        }
+        .notification.success .status-icon {
+            color: var(--success);
+        }
+
+        .notification.error {
+            border-left-color: var(--error);
+        }
+        .notification.error h3 {
+            color: var(--error);
+        }
+        .notification.error .status-icon {
+            color: var(--error);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning);
+        }
+        .notification.warning h3 {
+            color: var(--warning);
+        }
+        .notification.warning .status-icon {
+            color: var(--warning);
+        }
+
+        .notification.info {
+            border-left-color: var(--primary);
+        }
+        .notification.info h3 {
+            color: var(--primary);
+        }
+        .notification.info .status-icon {
+            color: var(--primary);
+        }
+
+        /* Estilos para a lista de tarefas */
+        #task-list-container {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            padding-right: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .task-item {
+            background: var(--background-light);
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+            opacity: 0; /* Para animação de entrada */
+            transform: translateY(20px); /* Para animação de entrada */
+            animation: slideUp 0.5s ease forwards; /* Animação padrão */
+        }
+        .task-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            background: var(--secondary-light);
+        }
+        /* Animação para itens de tarefa quando eles aparecem */
+        .task-item.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        .task-item h4 {
+            color: var(--text-primary);
+            margin: 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            width: 100%; /* Garante que o título ocupe toda a largura disponível */
+        }
+
+        .task-item p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            width: 100%; /* Garante que o parágrafo ocupe toda a largura disponível */
+        }
+
+        /* Styles for Processing Modal */
+        .progress-bar-container {
+            width: 90%;
+            background: var(--background-light);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.15);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            border-radius: 10px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        #current-task-info {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Aviso de "scam" com animação */
+         #scamWarning {
+            color: var(--warning-text);
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+            box-shadow: 0 0 15px var(--warning-shadow);
+            font-size: 0.9rem;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        #scamWarning .fas {
+            color: var(--warning-text);
+        }
+        #scamWarning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--pulse-glow);
+        }
+
+        /* Botão do Discord */
+        .discord-button {
+            width: 100%;
+            padding: 18px 26px;
+            border: none;
+            border-radius: 8px;
+            background-color: #5865F2; /* Cor azul do Discord */
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 6px 25px rgba(88, 101, 242, 0.4);
+            outline: none;
+            margin-top: 20px; /* Ajuste a margem superior para ficar abaixo do botão de tarefas */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .discord-button:hover {
+            background-color: #4752C4; /* Um tom mais escuro do azul do Discord */
+            transform: translateY(-4px);
+            box-shadow: 0 10px 35px rgba(88, 101, 242, 0.6);
+        }
+
+        .discord-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(88, 101, 242, 0.3);
+        }
+
+        /* Estilos para as abas de filtro de tarefas */
+        .task-filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+            flex-shrink: 0; /* Impede que as abas encolham */
+        }
+
+        .task-filter-tab {
+            background-color: var(--background-light);
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            font-weight: 600;
+            white-space: nowrap; /* Evita quebra de linha no texto do botão */
+        }
+
+        .task-filter-tab:hover {
+            background-color: var(--secondary-light);
+            color: var(--text-primary);
+            border-color: var(--primary-light);
+        }
+
+        .task-filter-tab.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 15px var(--glow);
+            transform: translateY(-2px);
+        }
+
+        /* Estilos para o dropdown de filtro em mobile */
+        .task-filter-dropdown {
+            display: none; /* Esconde por padrão, só aparece em mobile */
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        /* Estilização do select para parecer um botão */
+        .task-filter-dropdown select {
+            appearance: none; /* Remove o estilo padrão do sistema operacional */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: var(--background-light);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+            
+            /* Adiciona um ícone de seta customizado */
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23a0a0a0" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+        }
+
+        .task-filter-dropdown select:hover {
+            background-color: var(--secondary-light);
+            border-color: var(--primary-light);
+            color: var(--text-primary);
+        }
+
+        .task-filter-dropdown select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 5px var(--glow), inset 0 2px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+        }
+
+
+        @media (max-width: 600px) {
+            .task-filter-tabs {
+                display: none; /* Esconde os botões em mobile */
+            }
+            .task-filter-dropdown {
+                display: block; /* Mostra o dropdown em mobile */
+            }
+        }
+
+
+        /* Estilos para os botões de ação abaixo da lista de tarefas */
+        .task-action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+            width: 100%;
+            flex-shrink: 0; /* Impede que os botões de ação encolham */
+        }
+
+        .task-action-buttons .action-button {
+            margin-top: 0; /* Override default margin-top from .action-button */
+        }
+
+        /* Estilos para os checkboxes de tarefas configuráveis */
+        .task-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: var(--background-light);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            flex-wrap: wrap; /* Permite quebrar linha */
+        }
+
+        .task-checkbox-item:hover {
+            border-color: var(--primary);
+            background-color: var(--secondary-light);
+        }
+
+        .task-checkbox-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            background-color: var(--background);
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-checkbox-item input[type="checkbox"]:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .task-checkbox-item input[type="checkbox"]:checked::after {
+            content: '\2713'; /* Checkmark unicode character */
+            font-size: 14px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .task-checkbox-item label {
+            margin: 0;
+            font-size: 0.95em;
+            color: var(--text-primary);
+            flex-grow: 1;
+            cursor: pointer;
+            width: calc(100% - 30px); /* Ajusta a largura para não colidir com o checkbox */
+        }
+
+        .task-checkbox-item .draft-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: auto; /* Empurra para a direita */
+            white-space: nowrap; /* Evita quebra de linha */
+        }
+
+        .task-checkbox-item .draft-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--text-secondary);
+            border-radius: 3px;
+        }
+        .task-checkbox-item .draft-option input[type="checkbox"]:checked {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+        .task-checkbox-item .draft-option label {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        /* Estilos para os novos botões de seleção no modal configurável */
+        .selection-buttons-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+            flex-shrink: 0; /* Impede que os botões de seleção encolham */
+        }
+
+        .selection-buttons-group .action-button {
+            margin-top: 0;
+            padding: 10px 15px;
+            font-size: 0.9em;
+            flex-grow: 1;
+            min-width: 120px; /* Garante que os botões não fiquem muito pequenos */
+        }
+
+        /* Animações */
+        @keyframes shimmer {
+            0% { background-position: -200% 0, 0 0; }
+            100% { background-position: 200% 0, 0 0; }
+        }
+        @keyframes lineGlow {
+            0%, 100% { box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary-light); }
+            50% { box-shadow: 0 0 10px var(--primary-light), 0 0 20px var(--primary); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(120px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(60px); }
+        }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 28px;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            .header .moon-logo {
+                font-size: 1.9rem;
+            }
+            h2 {
+                font-size: 1.8rem;
+            }
+            #scamWarning { font-size: 0.85rem; padding: 10px 15px; }
+            .notifications-container {
+                width: calc(100% - 32px);
+                right: 16px;
+                left: 16px;
+                bottom: 16px;
+            }
+            .notification {
+                padding: 14px 18px;
+            }
+            .notification h3 {
+                font-size: 15px;
+            }
+            .notification p {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            /* Notificações no canto superior direito e menores */
+            .notifications-container {
+                top: 10px;
+                right: 10px;
+                bottom: auto; /* Remove a posição inferior */
+                left: auto; /* Remove a posição esquerda */
+                max-width: 280px; /* Reduz a largura máxima */
+            }
+            .notification {
+                padding: 10px 15px; /* Reduz o padding */
+                font-size: 0.85em; /* Reduz o tamanho da fonte geral */
+            }
+            .notification h3 {
+                font-size: 14px; /* Reduz o tamanho da fonte do título */
+            }
+            .notification p {
+                font-size: 12px; /* Reduz o tamanho da fonte do parágrafo */
+            }
+
+
+            .modal-content {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .header .moon-logo {
+                font-size: 1.4em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            .login-button, .action-button, .discord-button {
+                font-size: 1em;
+                padding: 14px 20px;
+            }
+            .password-toggle {
+                font-size: 1em;
+            }
+            input[type="text"], input[type="password"], input[type="number"], select { /* Adicionado select */
+                padding: 14px 18px;
+                font-size: 16px;
+            }
+            .close-button {
+                font-size: 1.5em;
+            }
+            /* Removido o empilhamento dos botões de filtro para dar lugar ao dropdown */
+            /* .task-filter-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            .task-filter-tab {
+                width: 90%;
+            } */
+            .task-checkbox-item .draft-option {
+                margin-left: 0; /* Remove margin-left para empilhar em telas menores */
+                width: 100%; /* Ocupa a largura total */
+                justify-content: flex-end; /* Alinha à direita */
+            }
+
+            /* Melhorias para o modal de tarefas configuráveis em telas pequenas */
+            #configurableTasksModal .modal-content {
+                padding: 20px 15px; /* Reduz o padding horizontal */
+            }
+            #configurable-task-list-container {
+                /* Ajusta a altura máxima para caber mais conteúdo e permite rolagem */
+                max-height: calc(100vh - 280px); /* Ajusta dinamicamente a altura */
+                padding-right: 5px; /* Ajusta o padding para a barra de rolagem */
+                flex-grow: 1; /* Permite que o container de tarefas ocupe o espaço restante */
+            }
+            .task-checkbox-item {
+                flex-direction: column; /* Empilha o checkbox/label e a opção de rascunho */
+                align-items: flex-start; /* Alinha o conteúdo à esquerda */
+                padding: 10px; /* Reduz o padding */
+                gap: 5px; /* Reduz o espaçamento */
+            }
+            .task-checkbox-item label {
+                font-size: 0.9em; /* Reduz o tamanho da fonte */
+                width: 100%; /* Ocupa a largura total */
+            }
+            .task-checkbox-item .draft-option {
+                flex-direction: row; /* Mantém rascunho e checkbox na mesma linha */
+                width: auto; /* Permite que o grupo de rascunho se ajuste ao conteúdo */
+                margin-left: auto; /* Mantém alinhado à direita */
+            }
+            .selection-buttons-group {
+                flex-direction: column; /* Empilha os botões de seleção */
+            }
+            .selection-buttons-group .action-button {
+                width: 100%; /* Ocupa a largura total */
+                min-width: unset; /* Remove o min-width */
+                padding: 8px 12px; /* Reduz o padding dos botões de seleção */
+                font-size: 0.8em; /* Reduz o tamanho da fonte dos botões de seleção */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .header .moon-logo {
+                font-size: 1.1em;
+            }
+            h2 {
+                font-size: 1.3em;
+            }
+            .modal-content {
+                padding: 15px;
+            }
+            .task-item {
+                padding: 10px 12px;
+            }
+            #scamWarning { font-size: 0.75rem; padding: 8px 12px; }
+
+            /* Ajustes finos para o modal de tarefas configuráveis em telas muito pequenas */
+            #configurableTasksModal .modal-content {
+                padding: 15px 10px;
+            }
+            .task-checkbox-item {
+                padding: 8px;
+            }
+            .task-checkbox-item label {
+                font-size: 0.85em;
+            }
+            .task-checkbox-item .draft-option label {
+                font-size: 0.75em;
+            }
+             #configurable-task-list-container {
+                max-height: calc(100vh - 260px); /* Ajusta ainda mais para telas menores */
+            }
+            .selection-buttons-group .action-button {
+                padding: 6px 10px; /* Reduz ainda mais o padding dos botões de seleção */
+                font-size: 0.75em; /* Reduz ainda mais o tamanho da fonte dos botões de seleção */
+            }
+        }
+        @media (max-width: 380px) {
+            h1 { font-size: 1.8rem; }
+            .header .moon-logo { font-size: 1.3rem; }
+            h2 { font-size: 1.2rem; }
+            .login-button, .action-button, .discord-button { font-size: 0.9em; padding: 12px 18px; }
+            #configurable-task-list-container {
+                max-height: calc(100vh - 240px); /* Ajuste final para telas muito pequenas */
+            }
+            .selection-buttons-group .action-button {
+                padding: 5px 8px; /* Ajuste final do padding dos botões de seleção */
+                font-size: 0.7em; /* Ajuste final do tamanho da fonte dos botões de seleção */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pré-carregador e fundo de partículas -->
+    <div id="preloader">
+        <div class="loader-content">
+            <div class="loader"></div>
+            <div class="loading-text">Carregando...</div>
+        </div>
+    </div>
+    <div id="particle-container"></div>
+
+    <!-- Modal de Login -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content">
+            <!-- Botão de fechar removido conforme solicitação -->
+            <div class="header">
+                <div class="logo">
+                    <img src="https://crimsonstrauss.xyz/img/expansao/1h65tyvhvlce1.gif" alt="Logo Tarefas" class="takis-image">
+                </div>
+                <h1><i class="fas fa-clipboard-list moon-logo"></i> Tarefas</h1>
+            </div>
+            
+            <!-- Aviso de "scam" com animação -->
+            <p id="scamWarning" class="text-error">
+                <i class="fas fa-exclamation-triangle"></i> Se você pagou por isso, foi scamado.
+            </p>
+            
+            <div class="form-group">
+                <label for="ra">RA (Registro do Aluno):</label>
+                <div class="input-wrapper">
+                    <input type="text" id="ra" placeholder="Digite seu RA">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" placeholder="Digite sua senha">
+                    <span class="password-toggle" onclick="togglePasswordVisibility()">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button class="login-button" onclick="buscarTarefas()">
+                <i class="fas fa-search"></i> <span>Buscar Tarefas</span>
+            </button>
+
+            <!-- Botão do Discord -->
+            <button class="discord-button" onclick="window.open('https://discord.gg/your-discord-invite', '_blank')">
+                <i class="fab fa-discord"></i> <span>Discord</span>
+            </button>
+
+            <!-- Feedback message agora usa o sistema de notificação, mas mantemos o div para compatibilidade com a função showFeedback original -->
+            <div id="feedback-message" class="notification" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Novo Modal para Tarefas -->
+    <div class="modal-overlay" id="tasksModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeTasksModal()">&times;</button>
+            <div class="header">
+                <h1><i class="fas fa-tasks moon-logo"></i> Suas Tarefas</h1>
+            </div>
+
+            <!-- Abas de filtro de tarefas (para PC) -->
+            <div class="task-filter-tabs" id="main-task-filter-tabs">
+                <!-- Abas serão geradas dinamicamente aqui -->
+            </div>
+
+            <div id="task-list-container">
+                <!-- Tarefas serão inseridas aqui via JavaScript -->
+            </div>
+
+            <div class="task-action-buttons">
+                <button class="action-button" onclick="showAllTasksProcessingModal()">
+                    <i class="fas fa-robot"></i> <span>Fazer todas as tarefas</span>
+                </button>
+                <button class="action-button" onclick="showConfigurableTasksModal()">
+                    <i class="fas fa-cogs"></i> <span>Fazer tarefas (configurável)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para "Fazer todas as tarefas" -->
+    <div class="modal-overlay" id="allTasksProcessingModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeAllTasksProcessingModal()">&times;</button>
+            <div class="header">
+                <h1><i class="fas fa-robot moon-logo"></i> Processar Todas as Tarefas</h1>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Esta ação não pode ser revertida. Certifique-se de que as tarefas selecionadas estão corretas antes de prosseguir.
+            </p>
+            <div class="form-group">
+                <label for="processingTime">Tempo de processamento por tarefa (segundos):</label>
+                <div class="input-wrapper">
+                    <input type="number" id="processingTime" min="1" max="300" value="60" placeholder="Ex: 60">
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 5px;">
+                    Recomendado: 60-120 segundos. Mín: 1 seg, Máx: 300 seg (5 minutos).
+                </p>
+            </div>
+            <button class="action-button" onclick="processAllTasks()">
+                <i class="fas fa-play-circle"></i> <span>Fazer Atividades</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para "Fazer tarefas (configurável)" -->
+    <div class="modal-overlay" id="configurableTasksModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeConfigurableTasksModal()">&times;</button>
+            <div class="header">
+                <h1><i class="fas fa-cogs moon-logo"></i> Configurar Tarefas</h1>
+            </div>
+            
+            <!-- Abas de filtro de tarefas para o modal configurável (para PC) -->
+            <div class="task-filter-tabs" id="configurable-task-filter-tabs-desktop">
+                <button class="task-filter-tab" data-filter="pending">Pendentes</button>
+                <button class="task-filter-tab" data-filter="expired">Expiradas</button>
+                <button class="task-filter-tab" data-filter="special">Especiais</button>
+                <button class="task-filter-tab" data-filter="all">Todas</button>
+            </div>
+
+            <!-- Dropdown de filtro de tarefas para o modal configurável (para Mobile) -->
+            <div class="task-filter-dropdown" id="configurable-task-filter-dropdown-mobile">
+                <select id="task-filter-select">
+                    <option value="pending">Pendentes</option>
+                    <option value="expired">Expiradas</option>
+                    <option value="special">Especiais</option>
+                    <option value="all">Todas</option>
+                </select>
+            </div>
+
+            <!-- Botões de seleção e rascunho -->
+            <div class="selection-buttons-group">
+                <button class="action-button" onclick="toggleAllCheckboxes()">
+                    <i class="fas fa-check-square"></i> Selecionar/Desmarcar Todas
+                </button>
+                <button class="action-button" onclick="toggleAllDrafts()">
+                    <i class="fas fa-file-alt"></i> Marcar/Desmarcar Rascunho
+                </button>
+            </div>
+
+            <div id="configurable-task-list-container" style="max-height: 300px; overflow-y: auto; text-align: left; padding-right: 12px;">
+                <!-- Checkboxes de tarefas serão inseridos aqui via JavaScript -->
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="configurableTaskDuration">Duração da atividade (segundos):</label>
+                <div class="input-wrapper">
+                    <input type="number" id="configurableTaskDuration" min="1" value="60" placeholder="Ex: 60">
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 5px;">
+                    Tempo simulado de execução da tarefa.
+                </p>
+            </div>
+
+            <button class="action-button" onclick="processConfigurableTasks()">
+                <i class="fas fa-check-double"></i> <span>Processar Selecionadas</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Contêiner para notificações flutuantes (novo sistema) -->
+    <div class="notifications-container" id="notification-container"></div>
+
+    <script>
+
+        // Lógica de partículas e preloader do index.html
+        document.addEventListener('DOMContentLoaded', () => {
+            const particleContainer = document.getElementById('particle-container');
+            
+            // Sistema de partículas melhorado
+            function createParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particleContainer.appendChild(particle);
+                
+                const size = Math.random() * 4 + 2;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                particle.style.animationDuration = `${Math.random() * 15 + 20}s`;
+                
+                // Remove partícula após animação para não sobrecarregar
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.remove();
+                    }
+                }, (Math.random() * 15 + 20) * 1000);
+            }
+            
+            // Cria partículas iniciais
+            for (let i = 0; i < 40; i++) {
+                setTimeout(createParticle, i * 200);
+            }
+            
+            // Continua criando partículas novas em intervalos
+            setInterval(createParticle, 800);
+
+            // Esconde o conteúdo do preloader após o carregamento
+            const preloader = document.getElementById("preloader");
+            setTimeout(() => {
+                preloader.style.opacity = "0";
+                setTimeout(() => {
+                    preloader.style.display = "none";
+                }, 500);
+            }, 500);
+        });
+
+        // Efeito Ripple nos botões
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                ripple.style.cssText = `
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.2);
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    pointer-events: none;
+                `;
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Variáveis e constantes
+        const SERVER_URL = 'https://crimsonstrauss.xyz:3010'; // Porta 3010 para o servidor Python
+
+        const loginModal = document.getElementById('loginModal');
+        const tasksModal = document.getElementById('tasksModal');
+        const allTasksProcessingModal = document.getElementById('allTasksProcessingModal');
+        const configurableTasksModal = document.getElementById('configurableTasksModal');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.querySelector('.password-toggle i');
+        const feedbackMessageDiv = document.getElementById('feedback-message'); // Mantido para compatibilidade
+        const taskListContainer = document.getElementById('task-list-container');
+        const mainTaskFilterTabsContainer = document.getElementById('main-task-filter-tabs'); // Container das abas principais
+        const configurableTaskListContainer = document.getElementById('configurable-task-list-container');
+        const configurableTaskDurationInput = document.getElementById('configurableTaskDuration');
+        const configurableTaskFilterTabsDesktop = document.querySelectorAll('#configurable-task-filter-tabs-desktop .task-filter-tab'); // Para desktop
+        const configurableTaskFilterDropdownMobile = document.getElementById('task-filter-select'); // Para mobile
+
+        let allFetchedTasks = []; // Armazena todas as tarefas buscadas do backend
+        let currentRa = '';
+        let currentCaelumLoginToken = ''; // Pode ser removido se não for usado para tarefas
+        let currentAuthToken = ''; // Armazena o token de autenticação após o login
+        let currentUserNick = ''; // Armazena o nick do usuário após o login
+
+
+        // Função showNotification para exibir mensagens flutuantes
+        function showNotification(type, message, duration = 2000) { // Duração reduzida para 2 segundos
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`; // Adiciona a classe 'notification'
+
+            let iconClass = '';
+            if (type === 'info') iconClass = 'fas fa-info-circle';
+            else if (type === 'success') iconClass = 'fas fa-check-circle';
+            else if (type === 'error') iconClass = 'fas fa-times-circle';
+            else if (type === 'warning') iconClass = 'fas fa-exclamation-triangle';
+
+            notification.innerHTML = `
+                <h3><i class="${iconClass} status-icon"></i>${type.charAt(0).toUpperCase() + type.slice(1)}</h3>
+                <p>${message}</p>
+            `;
+
+            // Garante que a notificação tenha um tamanho inicial consistente
+            notification.style.minWidth = '200px'; 
+            notification.style.maxWidth = '350px';
+
+            container.appendChild(notification);
+
+            // Removido void notification.offsetWidth; e classList.add('show') aqui
+            // para que o CSS base já defina a visibilidade e posição final.
+            // A animação de slideInRight foi removida do CSS para evitar o "bug" de tamanho.
+
+            setTimeout(() => {
+                // Apenas adiciona fadeOut para remover a notificação após a duração
+                notification.classList.add('fadeOut');
+                notification.addEventListener('animationend', () => notification.remove(), {once: true});
+            }, duration);
+        }
+
+        // Adaptação da função showFeedback para usar showNotification
+        function showFeedback(message, type, targetElement = feedbackMessageDiv) {
+            if (targetElement === feedbackMessageDiv) {
+                showNotification(type, message);
+            } else {
+                targetElement.textContent = message;
+                targetElement.className = '';
+                targetElement.classList.add('notification', type);
+                targetElement.style.display = 'block';
+
+                if (type !== 'loading') {
+                    setTimeout(() => {
+                        targetElement.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+
+        // NOVA FUNÇÃO: Esconde todos os modais
+        function hideAllModals() {
+            loginModal.classList.remove('active');
+            tasksModal.classList.remove('active');
+            allTasksProcessingModal.classList.remove('active');
+            configurableTasksModal.classList.remove('active');
+        }
+
+        // Funções de controle de visibilidade dos modais
+        function showLoginModal() {
+            hideAllModals(); // Garante que todos os outros modais estejam escondidos
+            loginModal.classList.add('active');
+        }
+
+        function hideLoginModal() {
+            // Esta função não será mais chamada para o modal de login principal
+            // loginModal.classList.remove('active');
+        }
+
+        function showTasksModal() {
+            hideAllModals(); // Garante que todos os outros modais estejam escondidos
+            tasksModal.classList.add('active');
+        }
+
+        function closeTasksModal() {
+            tasksModal.classList.remove('active');
+            showLoginModal();
+        }
+
+        function showAllTasksProcessingModal() {
+            hideAllModals(); // Garante que todos os outros modais estejam escondidos
+            allTasksProcessingModal.classList.add('active');
+        }
+
+        function closeAllTasksProcessingModal() {
+            allTasksProcessingModal.classList.remove('active');
+            // showLoginModal(); // Removido daqui, pois o fluxo principal chamará
+        }
+
+        function showConfigurableTasksModal() {
+            hideAllModals(); // Garante que todos os outros modais estejam escondidos
+            configurableTasksModal.classList.add('active');
+            
+            // Lógica para ativar a aba/dropdown correta no modal configurável
+            const hasPending = allFetchedTasks.some(task => task.type === 'pending');
+            const hasExpired = allFetchedTasks.some(task => task.type === 'expired');
+            const hasSpecial = allFetchedTasks.some(task => task.is_special_task);
+
+            let filterToActivate = 'all'; // Padrão se nenhuma categoria tiver tarefas
+
+            if (hasPending) {
+                filterToActivate = 'pending';
+            } else if (hasExpired) {
+                filterToActivate = 'expired';
+            } else if (hasSpecial) {
+                filterToActivate = 'special';
+            }
+
+            // Ativa a aba correta para desktop
+            configurableTaskFilterTabsDesktop.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.filter === filterToActivate) {
+                    tab.classList.add('active');
+                }
+            });
+            // Seleciona a opção correta no dropdown para mobile
+            configurableTaskFilterDropdownMobile.value = filterToActivate;
+
+            populateConfigurableTasksModal(filterToActivate);
+        }
+
+        function closeConfigurableTasksModal() {
+            configurableTasksModal.classList.remove('active');
+            showTasksModal(); // Retorna ao modal "Suas Tarefas"
+        }
+
+        function togglePasswordVisibility() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.classList.remove('fa-eye');
+                passwordToggle.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.classList.remove('fa-eye-slash');
+                passwordToggle.classList.add('fa-eye');
+            }
+        }
+
+        // Função para exibir as tarefas no modal com base no filtro
+        function displayTasks(tasksToDisplay, filterType) {
+            taskListContainer.innerHTML = ''; // Limpa o container antes de adicionar novas tarefas
+            
+            // Filtra as tarefas com base no tipo
+            let filteredTasks = [];
+            if (filterType === 'pending') {
+                filteredTasks = tasksToDisplay.filter(task => task.type === 'pending');
+            } else if (filterType === 'expired') {
+                filteredTasks = tasksToDisplay.filter(task => task.type === 'expired');
+            } else if (filterType === 'special') {
+                filteredTasks = tasksToDisplay.filter(task => task.is_special_task);
+            } else if (filterType === 'all') { // Adicionado filtro 'all' para o modal principal também
+                filteredTasks = tasksToDisplay;
+            }
+
+            if (filteredTasks.length > 0) {
+                filteredTasks.forEach((task, index) => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.classList.add('task-item');
+                    // Adiciona um pequeno delay para a animação sequencial
+                    taskDiv.style.animationDelay = `${index * 0.05}s`; 
+                    taskDiv.innerHTML = `
+                        <h4>${task.title || task.name}</h4>
+                        <p>Status: ${task.answer_status || (task.type === 'expired' ? 'Não Respondida (Expirada)' : 'N/A')}</p>
+                        <p>Tipo: ${task.type === 'pending' ? 'Pendente' : (task.type === 'expired' ? 'Expirada' : 'Normal')}</p>
+                        ${task.is_special_task ? '<p style="color: var(--primary-light); font-weight: bold;">(Tarefa Especial)</p>' : ''}
+                    `;
+                    taskListContainer.appendChild(taskDiv);
+                    // Força a animação
+                    setTimeout(() => taskDiv.classList.add('show'), 10);
+                });
+            } else {
+                let message = '';
+                if (filterType === 'pending') {
+                    message = 'Nenhuma tarefa pendente encontrada.';
+                } else if (filterType === 'expired') {
+                    message = 'Nenhuma tarefa expirada encontrada.';
+                } else if (filterType === 'special') {
+                    message = 'Nenhuma tarefa especial encontrada.';
+                } else if (filterType === 'all') {
+                    message = 'Nenhuma tarefa encontrada.';
+                }
+                taskListContainer.innerHTML = `<p style="color: var(--text-secondary); text-align: center; animation: fadeIn 0.5s ease forwards;">${message}</p>`;
+            }
+        }
+
+        // Função para popular o modal de tarefas configuráveis
+        function populateConfigurableTasksModal(filterType) {
+            configurableTaskListContainer.innerHTML = ''; // Limpa o container
+            let filteredTasks = [];
+
+            if (filterType === 'pending') {
+                filteredTasks = allFetchedTasks.filter(task => task.type === 'pending');
+            } else if (filterType === 'expired') {
+                filteredTasks = allFetchedTasks.filter(task => task.type === 'expired');
+            } else if (filterType === 'special') {
+                filteredTasks = allFetchedTasks.filter(task => task.is_special_task);
+            } else if (filterType === 'all') { // Novo filtro para todas as tarefas
+                filteredTasks = allFetchedTasks;
+            }
+
+            if (filteredTasks.length > 0) {
+                filteredTasks.forEach((task, index) => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.classList.add('task-checkbox-item');
+                    taskDiv.style.animationDelay = `${index * 0.05}s`;
+                    taskDiv.innerHTML = `
+                        <input type="checkbox" id="task-${task.id}" value="${task.id}" data-task-index="${allFetchedTasks.indexOf(task)}">
+                        <label for="task-${task.id}">
+                            ${task.title || task.name} 
+                            <br> <span style="font-size:0.8em; color: var(--text-secondary);">Status: ${task.answer_status || (task.type === 'expired' ? 'Não Respondida (Expirada)' : 'N/A')}</span>
+                            ${task.is_special_task ? '<span style="color: var(--primary-light); font-weight: bold; font-size:0.8em;"> (Especial)</span>' : ''}
+                        </label>
+                        <div class="draft-option">
+                            <input type="checkbox" id="draft-${task.id}" data-task-id="${task.id}">
+                            <label for="draft-${task.id}">Rascunho</label>
+                        </div>
+                    `;
+                    configurableTaskListContainer.appendChild(taskDiv);
+                    setTimeout(() => taskDiv.classList.add('show'), 10);
+                });
+            } else {
+                let message = '';
+                if (filterType === 'pending') {
+                    message = 'Nenhuma tarefa pendente para configurar.';
+                } else if (filterType === 'expired') {
+                    message = 'Nenhuma tarefa expirada para configurar.';
+                } else if (filterType === 'special') {
+                    message = 'Nenhuma tarefa especial para configurar.';
+                } else if (filterType === 'all') {
+                    message = 'Nenhuma tarefa encontrada para configurar.';
+                }
+                configurableTaskListContainer.innerHTML = `<p style="color: var(--text-secondary); text-align: center; animation: fadeIn 0.5s ease forwards;">${message}</p>`;
+            }
+        }
+
+        // Função para selecionar/desmarcar todos os checkboxes de tarefa
+        function toggleAllCheckboxes() {
+            const checkboxes = configurableTaskListContainer.querySelectorAll('input[type="checkbox"]:not([id^="draft-"])');
+            if (checkboxes.length === 0) {
+                showNotification('warning', 'Nenhuma tarefa disponível para selecionar/desmarcar.');
+                return;
+            }
+
+            let allChecked = true;
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    allChecked = false;
+                }
+            });
+
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allChecked;
+            });
+            showNotification('info', `Todas as tarefas foram ${allChecked ? 'desmarcadas' : 'selecionadas'}.`);
+        }
+
+        // Função para marcar/desmarcar todas as tarefas selecionadas como rascunho
+        function toggleAllDrafts() {
+            const selectedTaskCheckboxes = configurableTaskListContainer.querySelectorAll('input[type="checkbox"]:checked:not([id^="draft-"])');
+            
+            if (selectedTaskCheckboxes.length === 0) {
+                showNotification('warning', 'Nenhuma tarefa selecionada para marcar/desmarcar como rascunho.');
+                return;
+            }
+
+            let allMarkedAsDraft = true;
+            selectedTaskCheckboxes.forEach(checkbox => {
+                const draftCheckbox = document.getElementById(`draft-${checkbox.value}`);
+                if (draftCheckbox && !draftCheckbox.checked) {
+                    allMarkedAsDraft = false;
+                }
+            });
+
+            selectedTaskCheckboxes.forEach(checkbox => {
+                const draftCheckbox = document.getElementById(`draft-${checkbox.value}`);
+                if (draftCheckbox) {
+                    draftCheckbox.checked = !allMarkedAsDraft; // Inverte o estado
+                }
+            });
+            showNotification('info', `Opção de rascunho ${allMarkedAsDraft ? 'desmarcada' : 'marcada'} para as tarefas selecionadas.`);
+        }
+
+
+        // Adiciona event listeners para as abas de filtro do modal de tarefas
+        // Esta função agora é mais inteligente, exibindo apenas as abas relevantes
+        function setupMainTaskFilterTabs() {
+            mainTaskFilterTabsContainer.innerHTML = ''; // Limpa as abas existentes
+
+            const hasPending = allFetchedTasks.some(task => task.type === 'pending');
+            const hasExpired = allFetchedTasks.some(task => task.type === 'expired');
+            const hasSpecial = allFetchedTasks.some(task => task.is_special_task);
+
+            const tabs = [
+                { type: 'pending', label: 'Pendentes', hasTasks: hasPending },
+                { type: 'expired', label: 'Expiradas', hasTasks: hasExpired },
+                { type: 'special', label: 'Especiais', hasTasks: hasSpecial },
+                { type: 'all', label: 'Todas', hasTasks: true } // Adiciona a aba "Todas" sempre
+            ];
+
+            let firstActiveTab = null;
+
+            tabs.forEach(tabInfo => {
+                if (tabInfo.hasTasks) {
+                    const button = document.createElement('button');
+                    button.classList.add('task-filter-tab');
+                    button.dataset.filter = tabInfo.type;
+                    button.textContent = tabInfo.label;
+                    mainTaskFilterTabsContainer.appendChild(button);
+
+                    button.addEventListener('click', function() {
+                        document.querySelectorAll('#main-task-filter-tabs .task-filter-tab').forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        displayTasks(allFetchedTasks, this.dataset.filter);
+                    });
+
+                    if (!firstActiveTab) {
+                        firstActiveTab = button;
+                    }
+                }
+            });
+
+            // Ativa a primeira aba disponível
+            if (firstActiveTab) {
+                firstActiveTab.classList.add('active');
+                displayTasks(allFetchedTasks, firstActiveTab.dataset.filter);
+            } else {
+                // Se não houver nenhuma tarefa, exibe uma mensagem
+                taskListContainer.innerHTML = `<p style="color: var(--text-secondary); text-align: center; animation: fadeIn 0.5s ease forwards;">Nenhuma tarefa encontrada.</p>`;
+            }
+        }
+
+
+        // Adiciona event listeners para as ABAS de filtro do modal de tarefas configuráveis (Desktop)
+        configurableTaskFilterTabsDesktop.forEach(tab => {
+            tab.addEventListener('click', function() {
+                configurableTaskFilterTabsDesktop.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const filterType = this.dataset.filter;
+                populateConfigurableTasksModal(filterType);
+            });
+        });
+
+        // Adiciona event listener para o DROPDOWN de filtro do modal de tarefas configuráveis (Mobile)
+        configurableTaskFilterDropdownMobile.addEventListener('change', function() {
+            const filterType = this.value;
+            populateConfigurableTasksModal(filterType);
+        });
+
+
+        // Função para processar todas as tarefas
+        async function processAllTasks() {
+            const processingTimeInput = document.getElementById('processingTime');
+            const processingTime = parseInt(processingTimeInput.value); // Agora em segundos
+
+            if (isNaN(processingTime) || processingTime < 1 || processingTime > 300) { // Max 300 segundos (5 minutos)
+                showNotification('error', 'Por favor, insira um tempo de processamento válido entre 1 e 300 segundos.');
+                return;
+            }
+
+            // Adicionado: Verifica se o token de autenticação está presente
+            if (!currentAuthToken) {
+                showNotification('error', 'Token de autenticação não encontrado. Por favor, faça login novamente.');
+                console.error('Erro: auth_token está vazio ao tentar processar todas as tarefas.');
+                return;
+            }
+
+            const tasksToProcess = allFetchedTasks.map(task => {
+                const taskPayload = {
+                    id: task.id,
+                    salvar_como_rascunho: false, // Por padrão, não salva como rascunho para "todas as tarefas"
+                    answer_duration: processingTime // Usa o tempo de processamento como duração
+                };
+                // Adiciona answer_id se existir na tarefa original
+                if (task.answer_id !== null && task.answer_id !== undefined) {
+                    taskPayload.answer_id = task.answer_id;
+                }
+                return taskPayload;
+            });
+
+            if (tasksToProcess.length === 0) {
+                showNotification('info', 'Nenhuma tarefa encontrada para processar.'); // Mensagem mais genérica
+                return;
+            }
+
+            // Notificação com a lista de tarefas
+            let taskTitles = tasksToProcess.map(task => {
+                const originalTask = allFetchedTasks.find(t => t.id === task.id);
+                return originalTask ? originalTask.title || originalTask.name : `Tarefa ID ${task.id}`;
+            }).join(', ');
+            showNotification('info', `As seguintes tarefas serão processadas: ${taskTitles}.`);
+            showNotification('info', `Questões sendo processadas, aguarde o tempo que você colocou (${processingTime} segundos).`);
+
+            try {
+                // Fechar todos os modais imediatamente ANTES de enviar o fetch
+                showLoginModal(); 
+
+                const response = await fetch(`${SERVER_URL}/mensagem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'fazer_atividade_configuravel', // Alterado para usar a rota configurável
+                        auth_token: currentAuthToken,
+                        task: tasksToProcess
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Erro do servidor: ${response.status}`);
+                }
+
+                const data = await response.json();
+                showNotification('success', data.message || 'Todas as tarefas foram enviadas para processamento!');
+            } catch (error) {
+                console.error('Erro ao processar todas as tarefas:', error);
+                showNotification('error', `Erro ao processar tarefas: ${error.message}`);
+            }
+        }
+
+        // Função para processar tarefas configuráveis
+        async function processConfigurableTasks() {
+            const selectedTaskElements = configurableTaskListContainer.querySelectorAll('input[type="checkbox"]:checked:not([id^="draft-"])'); // Seleciona apenas os checkboxes de tarefa marcados
+            const selectedTasks = [];
+            const duration = parseFloat(configurableTaskDurationInput.value);
+
+            if (isNaN(duration) || duration <= 0) {
+                showNotification('error', 'Por favor, insira uma duração válida (número positivo) para a atividade.');
+                return;
+            }
+
+            selectedTaskElements.forEach(checkbox => {
+                const taskIndex = parseInt(checkbox.dataset.taskIndex);
+                const originalTask = allFetchedTasks[taskIndex];
+                
+                const draftCheckbox = document.getElementById(`draft-${originalTask.id}`);
+                const saveAsDraft = draftCheckbox ? draftCheckbox.checked : false;
+
+                const taskPayload = {
+                    id: originalTask.id,
+                    salvar_como_rascunho: saveAsDraft,
+                    answer_duration: duration, // Adiciona a duração aqui
+                };
+
+                // Adiciona answer_id se existir na tarefa original
+                if (originalTask.answer_id !== null && originalTask.answer_id !== undefined) {
+                    taskPayload.answer_id = originalTask.answer_id;
+                }
+                
+                selectedTasks.push(taskPayload);
+            });
+
+            if (selectedTasks.length === 0) {
+                showNotification('warning', 'Nenhuma tarefa selecionada para processar.');
+                return;
+            }
+
+            // Adicionado: Verifica se o token de autenticação está presente
+            if (!currentAuthToken) {
+                showNotification('error', 'Token de autenticação não encontrado. Por favor, faça login novamente.');
+                console.error('Erro: auth_token está vazio ao tentar processar tarefas configuráveis.');
+                return;
+            }
+
+            // Notificação com a lista de tarefas
+            let taskTitles = selectedTasks.map(task => {
+                const originalTask = allFetchedTasks.find(t => t.id === task.id);
+                return originalTask ? originalTask.title || originalTask.name : `Tarefa ID ${task.id}`;
+            }).join(', ');
+            showNotification('info', `As seguintes tarefas selecionadas serão processadas: ${taskTitles}.`);
+            showNotification('info', `Questões sendo processadas, aguarde o tempo que você colocou (${duration} segundos).`);
+
+            try {
+                // Fechar todos os modais imediatamente ANTES de enviar o fetch
+                showLoginModal(); 
+
+                const response = await fetch(`${SERVER_URL}/mensagem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'fazer_atividade_configuravel',
+                        auth_token: currentAuthToken,
+                        task: selectedTasks
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Erro do servidor: ${response.status}`);
+                }
+
+                const data = await response.json();
+                showNotification('success', data.message || 'Tarefas selecionadas enviadas para processamento!');
+            } catch (error) {
+                console.error('Erro ao processar tarefas configuráveis:', error);
+                showNotification('error', `Erro ao processar tarefas: ${error.message}`);
+            }
+        }
+
+
+        // Função buscarTarefas
+        async function buscarTarefas() {
+            const ra = document.getElementById('ra').value;
+            const senha = document.getElementById('password').value;
+            const loginButton = document.querySelector('.login-button');
+
+            if (!ra || !senha) {
+                showFeedback('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+
+            // Set loading state
+            loginButton.classList.add('loading');
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Buscando...</span>';
+            
+            // 1. Correção da notificação inicial:
+            // A notificação de "Buscando tarefas..." agora usa showNotification diretamente
+            // e terá o tamanho consistente definido no CSS da classe .notification.
+            showNotification('info', 'Buscando tarefas...');
+
+            try {
+                const response = await fetch(`${SERVER_URL}/mensagem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        ra: ra, 
+                        senha: senha, 
+                        action: 'buscar_tarefas' 
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Erro do servidor: ${response.status}`);
+                }
+
+                const data = await response.json();
+                showFeedback(`Sucesso: ${data.message}`, 'success'); // Usa data.message do backend
+                
+                currentRa = ra;
+                // CORRIGIDO: Agora captura 'data.token' diretamente do objeto data, se existir, ou da primeira tarefa
+                if (data.token) {
+                    currentAuthToken = data.token;
+                } else if (data.tasks && data.tasks.length > 0 && data.tasks[0].token) {
+                    currentAuthToken = data.tasks[0].token;
+                } else {
+                    currentAuthToken = ''; // Garante que esteja vazio se não houver token
+                    console.warn('Nenhum token encontrado na resposta ou na primeira tarefa.');
+                    showNotification('warning', 'Nenhum token de autenticação recebido. Algumas funcionalidades podem não funcionar.');
+                }
+                
+                currentUserNick = data.nick; // Armazena o nick
+                allFetchedTasks = data.tasks || []; 
+
+                // Reset button state
+                loginButton.classList.remove('loading');
+                loginButton.innerHTML = '<i class="fas fa-search"></i> <span>Buscar Tarefas</span>';
+
+                // Configura as abas de filtro principais com base nas tarefas disponíveis
+                setupMainTaskFilterTabs();
+
+                showTasksModal(); // Mostra o modal de tarefas após o login bem-sucedido
+
+
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                showFeedback(`Erro: ${error.message}`, 'error');
+                
+                // Reset button state
+                loginButton.classList.remove('loading');
+                loginButton.innerHTML = '<i class="fas fa-search"></i> <span>Buscar Tarefas</span>';
+                
+                // Limpa as tarefas em caso de erro
+                allFetchedTasks = [];
+                // Garante que as abas sejam redefinidas se houver um erro na busca
+                setupMainTaskFilterTabs(); 
+            }
+        }
+
+        // Faz o modal de login aparecer assim que a página é carregada
+        window.onload = () => {
+            showLoginModal();
+        };
+    </script>
+</body>
+</html>
